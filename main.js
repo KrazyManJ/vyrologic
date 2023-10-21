@@ -4,12 +4,16 @@ const reloadMathJax = () => MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 
 const inputEl = document.getElementById("input");
 const outputEl = document.getElementById("output");
+const reverseEl = document.getElementById("reverse-table");
 
 inputEl.oninput = () => {
     calc()
     MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
 }
-
+reverseEl.oninput = () => {
+    calc()
+    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+}
 
 /**
  * @param {string} v 
@@ -37,7 +41,9 @@ function calc(){
         table += `<th>$${logicToMathJax(v)}$</th>`
     )
     table += "</tr>"
-    GenCombs(constants.length).forEach(vals => {
+    const combs = GenCombs(constants.length);
+    if (reverseEl.checked) combs.reverse()
+    combs.forEach(vals => {
         table += "<tr>";
         vals.forEach(c => table += `<td>$${c}$</td>`);
         [...compounds,formula].forEach(form => {
