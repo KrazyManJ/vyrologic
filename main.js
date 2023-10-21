@@ -12,7 +12,6 @@ inputEl.oninput = () => {
 
 
 /**
- * Random ass metoda
  * @param {string} v 
  * @returns {string}
  */
@@ -22,6 +21,8 @@ const logicToMathJax = (v) => v
     .replaceAll("&","\\wedge ")
     .replaceAll("=","\\iff ")
     .replaceAll(">","\\implies ")
+    .replaceAll("@","\\uparrow ")
+    .replaceAll("#","\\downarrow ")
 
 
 

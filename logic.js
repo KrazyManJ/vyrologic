@@ -3,14 +3,17 @@ const AND = (a,b) => a && b;
 const OR = (a,b) => a || b;
 const IMP = (a,b) => !(a && !b);
 const EQ = (a,b) => a == b;
-
+const NAND = (a,b) => !AND(a,b)
+const NOR = (a,b) => !OR(a,b)
 
 const SYMBOL_MAP = {
     "!": NEG,
     "&": AND,
     "|": OR,
     ">": IMP,
-    "=": EQ
+    "=": EQ,
+    "@": NAND,
+    "#": NOR
 }
 
 /**
