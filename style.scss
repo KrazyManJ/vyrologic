@@ -1,0 +1,20 @@
+div#output{
+    table {
+        margin: 1em;
+        border-collapse: collapse;
+        tr {
+            td,th {
+                border: solid 1px black;
+                padding: 0.2em 0.5em;
+                text-align: center;
+            }
+            th {
+                font-weight: normal;
+            }
+        }
+    }
+}
+input#input {
+    margin: 1em 1em 0;
+    border: 1px solid black;
+}
