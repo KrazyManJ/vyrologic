@@ -153,11 +153,43 @@ function getLogicFormulaVariables(formula) {
 
 /**
  * @param {string} formula 
- * @param {object} params 
+ * @param {Record<string,number>} params 
  */
 function evaluateFormula(formula,params){
     const variables = getLogicFormulaVariables(formula);
     formula = translateFormula(formula);
     variables.forEach(c => formula = formula.replaceAll(c,params[c]));
     return eval(formula);
+}
+
+/**
+ * @param {string} formula 
+ */
+function makeDNF(formula){
+    const variables = getLogicFormulaVariables(formula);
+    let result = [];
+    GenCombs(variables.length).forEach(vars => {
+        const params = {};
+        vars.forEach((_,i) => params[variables[i]] = vars[i]);
+        if (evaluateFormula(formula,params)==1){
+            result.push(`(${vars.map((v,i) => (v==0?"!":"")+variables[i]).join("&")})`)
+        }
+    })
+    return removeSurrFormBrackets(result.join("|"))
+}
+
+/**
+ * @param {string} formula 
+ */
+function makeKNF(formula){
+    const variables = getLogicFormulaVariables(formula);
+    let result = [];
+    GenCombs(variables.length).forEach(vars => {
+        const params = {};
+        vars.forEach((_,i) => params[variables[i]] = vars[i]);
+        if (evaluateFormula(formula,params)==0){
+            result.push(`(${vars.map((v,i) => (v==0?"":"!")+variables[i]).join("|")})`)
+        }
+    })
+    return removeSurrFormBrackets(result.join("&"))
 }
