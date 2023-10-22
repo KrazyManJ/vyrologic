@@ -88,7 +88,7 @@ const processFormula = (formula,callbacks) => {
     formula = removeSurrFormBrackets(formula);
     if (formula.match(/^[a-z]$/))
         return (callbacks.onElemental ?? (() => undefined))(formula);
-    if (formula.match(/^![a-z]$|^!\(.+\)$/)) 
+    if (formula.match(/^![a-z]$/) || (formula.match(/^!\(.+\)$/) && removeSurrFormBrackets(formula.substring(1))!==formula.substring(1))) 
         return (callbacks.onNegation ?? (() => undefined))(formula);
     let [prior,splitIndex] = [0,-1];
     for (let i = 0; i < formula.length; i++){
@@ -111,7 +111,7 @@ const processFormula = (formula,callbacks) => {
  * @returns {string}
  */
 function translateFormula(formula) {
-    /** @type {VyrologicProcessCallbacks} */
+    /** @type {VyrologicProcessCallbacks<string>} */
     const callbacks = {
         onElemental: (formula) => formula,
         onNegation: (formula) => `${SYMBOL_MAP["!"].name}(${processFormula(formula.substring(1),callbacks)})`,
@@ -127,26 +127,21 @@ function translateFormula(formula) {
 
 
 /**
- * @param {string} formula 
+ * @param {string} formula
+ * @returns {string[]}
  */
 function getCompounds(formula) {
-    const compounds = [];
-    /** @type {VyrologicProcessCallbacks} */
+    /** @type {VyrologicProcessCallbacks<string[]>} */
     const callbacks = {
-        onNegation: (formula) => {
-            compounds.push(formula)
-            processFormula(formula.substring(1),callbacks)
-        },
-        onCompound: (formula,splitIndex) => {
-            compounds.push(formula)
-            Array.of(
-                formula.substring(0,splitIndex),
-                formula.substring(splitIndex+1)
-            ).forEach(f => processFormula(f,callbacks))
-        }
+        onElemental: () => [],
+        onNegation: (f) => [f,...processFormula(f.substring(1),callbacks)],
+        onCompound: (f,splitIndex) => [
+            ...processFormula(f.substring(0,splitIndex),callbacks),
+            f,
+            ...processFormula(f.substring(splitIndex+1),callbacks)
+        ]   
     }
-    processFormula(formula,callbacks)
-    return compounds.map(c => removeSurrFormBrackets(c)).slice(1).reverse();
+    return [...new Set(processFormula(formula,callbacks).filter(f => f !== formula)).values()]
 }
 
 /**
