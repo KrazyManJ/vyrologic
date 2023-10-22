@@ -67,39 +67,62 @@ function removeSurrFormBrackets(formula){
 }
 
 /**
- * @param {string} formula
- * @returns {string}
- */
-function translateFormula(formula) {
-    if (!isCorrectBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
-    if (!isLogicFormula(formula)) throw Error(`Invalid characters in formula!`)
+ * @template T
+ * @typedef {{
+* onElemental?: (formula: string) => T | undefined
+* onNegation?:  (formula: string) => T | undefined
+* onCompound?:  (formula: string, splitIndex: int) => T | undefined
+* }} VyrologicProcessCallbacks
+*/
+
+/**
+* @param {string} formula 
+* @param {VyrologicProcessCallbacks} callbacks
+* @returns {string|undefined}
+*/
+const processFormula = (formula,callbacks) => {
+    if (!isCorrectBraceCount(formula)) 
+        throw Error(`Uncorrectly braced ${formula}`);
+    if (!isLogicFormula(formula)) 
+        throw Error(`Invalid characters in formula!`)
     formula = removeSurrFormBrackets(formula);
-    if (formula.match(/^[a-z]$/)) return formula;
-    if (formula.match(/^![a-z]$|^!\(.+\)$/)) return `${SYMBOL_MAP["!"].name}(${translateFormula(formula.substring(1))})`;
+    if (formula.match(/^[a-z]$/))
+        return (callbacks.onElemental ?? (() => undefined))(formula);
+    if (formula.match(/^![a-z]$|^!\(.+\)$/)) 
+        return (callbacks.onNegation ?? (() => undefined))(formula);
     let [prior,splitIndex] = [0,-1];
     for (let i = 0; i < formula.length; i++){
         const c = formula[i];
         if (c === "(") prior++;
         else if (c === ")") prior--;
-        if (prior === 0 && Object.keys(SYMBOL_MAP).filter(f => f !== "!").includes(c)){
-            if (splitIndex === -1) splitIndex = i;
-            else if (
-                Object.keys(SYMBOL_MAP).findIndex(v => v === c)
-                <=
-                Object.keys(SYMBOL_MAP).findIndex(v => v === formula[splitIndex])
-            )
-                splitIndex = i;
-        }
+        const conns = Object.keys(SYMBOL_MAP).filter(f => f !== "!")
+        if (prior !== 0 || !conns.includes(c)) continue;
+        if (splitIndex === -1 || (conns.indexOf(c)<=conns.indexOf(formula[splitIndex]))) splitIndex = i;
     }
     if (splitIndex === -1) {
         throw Error(`Invalid formula!`);
     }
 
-    return `${SYMBOL_MAP[formula[splitIndex]].name}(${
-        translateFormula(formula.substring(0,splitIndex))
-    },${
-        translateFormula(formula.substring(splitIndex+1))
-    })`;
+    return (callbacks.onCompound ?? (() => undefined))(formula, splitIndex);
+}
+
+/**
+ * @param {string} formula
+ * @returns {string}
+ */
+function translateFormula(formula) {
+    /** @type {VyrologicProcessCallbacks} */
+    const callbacks = {
+        onElemental: (formula) => formula,
+        onNegation: (formula) => `${SYMBOL_MAP["!"].name}(${processFormula(formula.substring(1),callbacks)})`,
+        onCompound: (formula, splitIndex) => 
+            `${SYMBOL_MAP[formula[splitIndex]].name}(${
+                processFormula(formula.substring(0,splitIndex),callbacks)
+            },${
+                processFormula(formula.substring(splitIndex+1),callbacks)
+            })`
+    }
+    return processFormula(formula,callbacks)
 }
 
 
@@ -108,38 +131,21 @@ function translateFormula(formula) {
  */
 function getCompounds(formula) {
     const compounds = [];
-    const rec = (formula) => {
-        if (!isCorrectBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
-        if (!isLogicFormula(formula)) throw Error(`Invalid characters in formula!`)
-        formula = removeSurrFormBrackets(formula);
-        if (formula.match(/^[a-z]$/)) return formula;
-        if (formula.match(/^![a-z]$|^!\(.+\)$/)) {
-            compounds.push(formula);
-            rec(formula.substring(1));
-            return;
+    /** @type {VyrologicProcessCallbacks} */
+    const callbacks = {
+        onNegation: (formula) => {
+            compounds.push(formula)
+            processFormula(formula.substring(1),callbacks)
+        },
+        onCompound: (formula,splitIndex) => {
+            compounds.push(formula)
+            Array.of(
+                formula.substring(0,splitIndex),
+                formula.substring(splitIndex+1)
+            ).forEach(f => processFormula(f,callbacks))
         }
-        compounds.push(formula)
-        let [prior,splitIndex] = [0,-1];
-        for (let i = 0; i < formula.length; i++){
-            const c = formula[i];
-            if (c === "(") prior++;
-            else if (c === ")") prior--;
-            if (prior === 0 && Object.keys(SYMBOL_MAP).filter(f => f !== "!").includes(c)){
-                if (splitIndex === -1) splitIndex = i;
-                else if (
-                    Object.keys(SYMBOL_MAP).findIndex(v => v === c)
-                    <=
-                    Object.keys(SYMBOL_MAP).findIndex(v => v === formula[splitIndex])
-                ) splitIndex = i;
-                
-            }
-        }
-        if (splitIndex === -1) {
-            throw Error(`Invalid formula!`);
-        }
-        Array.of(formula.substring(0,splitIndex),formula.substring(splitIndex+1)).forEach(f => rec(f))
     }
-    rec(formula);
+    processFormula(formula,callbacks)
     return compounds.map(c => removeSurrFormBrackets(c)).slice(1).reverse();
 }
 
