@@ -28,7 +28,7 @@ const GenCombs = (n) => Array(Math.pow(2,n)).fill(0).map((_,i)=>
  * @param {string} val 
  * @returns {boolean}
  */
-function correctBraceCount(val) {
+function isCorrectBraceCount(val) {
     let depth = 0;
     for (const c of val) {
         if (c === "(") depth++;
@@ -71,7 +71,7 @@ function removeSurrFormBrackets(formula){
  * @returns {string}
  */
 function translateFormula(formula) {
-    if (!correctBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
+    if (!isCorrectBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
     if (!isLogicFormula(formula)) throw Error(`Invalid characters in formula!`)
     formula = removeSurrFormBrackets(formula);
     if (formula.match(/^[a-z]$/)) return formula;
@@ -109,7 +109,7 @@ function translateFormula(formula) {
 function getCompounds(formula) {
     const compounds = [];
     const rec = (formula) => {
-        if (!correctBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
+        if (!isCorrectBraceCount(formula)) throw Error(`Uncorrectly braced ${formula}`);
         if (!isLogicFormula(formula)) throw Error(`Invalid characters in formula!`)
         formula = removeSurrFormBrackets(formula);
         if (formula.match(/^[a-z]$/)) return formula;

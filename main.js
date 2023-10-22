@@ -1,37 +1,18 @@
-const removeParentheses = (val) => val.startsWith("(") && val.endsWith(")") ? val.substring(1,val.length-1) : val;
-
-const reloadMathJax = () => MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-
 const inputEl = document.getElementById("input");
 const outputEl = document.getElementById("output");
 const reverseEl = document.getElementById("reverse-table");
 const dnfEl = document.getElementById("dnf")
 const knfEl = document.getElementById("knf")
+const md = document.getElementById("md")
 
 inputEl.oninput = () => {
     calc()
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    reloadMathJax()
 }
 reverseEl.oninput = () => {
     calc()
-    MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+    reloadMathJax()
 }
-
-/**
- * @param {string} v 
- * @returns {string}
- */
-const logicToMathJax = (v) => v
-    .replaceAll("!","\\neg ")
-    .replaceAll("|","\\vee ")
-    .replaceAll("&","\\wedge ")
-    .replaceAll("=","\\iff ")
-    .replaceAll(">","\\implies ")
-    .replaceAll("@","\\uparrow ")
-    .replaceAll("#","\\downarrow ")
-
-
-
 
 function calc(){
     let table = "<table><tr>"
