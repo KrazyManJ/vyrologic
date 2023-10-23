@@ -97,7 +97,7 @@ const processFormula = (formula,callbacks) => {
         else if (c === ")") prior--;
         const conns = Object.keys(SYMBOL_MAP).filter(f => f !== "!")
         if (prior !== 0 || !conns.includes(c)) continue;
-        if (splitIndex === -1 || (conns.indexOf(c)<=conns.indexOf(formula[splitIndex]))) splitIndex = i;
+        if (splitIndex === -1 || (conns.indexOf(c)>=conns.indexOf(formula[splitIndex]))) splitIndex = i;
     }
     if (splitIndex === -1) {
         throw Error(`Invalid formula!`);
@@ -141,7 +141,7 @@ function getCompounds(formula) {
             ...processFormula(f.substring(splitIndex+1),callbacks)
         ]   
     }
-    return [...new Set(processFormula(formula,callbacks).filter(f => f !== formula)).values()]
+    return [...new Set(processFormula(formula,callbacks).filter(f => f !== removeSurrFormBrackets(formula))).values()]
 }
 
 /**
@@ -193,4 +193,24 @@ function makeKNF(formula){
         }
     })
     return removeSurrFormBrackets(result.join("&"))
+}
+
+function isTautology(formula){
+    const variables = getLogicFormulaVariables(formula);
+    for (const vals of GenCombs(variables.length)){
+        const params = {};
+        vals.forEach((_,i) => params[variables[i]] = vals[i]);
+        if (evaluateFormula(formula,params) == 0) return false;
+    }
+    return true;
+}
+
+function isContradiction(formula){
+    const variables = getLogicFormulaVariables(formula);
+    for (const vals of GenCombs(variables.length)){
+        const params = {};
+        vals.forEach((_,i) => params[variables[i]] = vals[i]);
+        if (evaluateFormula(formula,params) == 1) return false;
+    }
+    return true;
 }

@@ -17,3 +17,6 @@ const logicToMathJax = (formula) => {
     Object.entries(MAP).forEach(([k,v])=>formula = formula.replaceAll(k,v))
     return formula;
 }
+
+const TAUTOLOGY_SYMBOL = "\\top"
+const CONTRADICTION_SYMBOL = "\\bot"
