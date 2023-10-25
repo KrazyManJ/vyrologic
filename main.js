@@ -39,5 +39,8 @@ function calc(){
     outputEl.innerHTML = table+"</table>"
     dnfEl.innerHTML = `$${logicToMathJax(makeDNF(formula))}$`
     knfEl.innerHTML = `$${logicToMathJax(makeKNF(formula))}$`
+    console.log("post",toPostFix(formula))
+    console.log("pre",toPreFix(formula))
+    console.log(translateFormula(formula))
 }
 calc()

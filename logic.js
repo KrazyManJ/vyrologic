@@ -77,7 +77,8 @@ function removeSurrFormBrackets(formula){
 
 /**
 * @param {string} formula 
-* @param {VyrologicProcessCallbacks} callbacks
+* @template {T}
+* @param {VyrologicProcessCallbacks<T>} callbacks
 * @returns {string|undefined}
 */
 const processFormula = (formula,callbacks) => {
@@ -213,4 +214,45 @@ function isContradiction(formula){
         if (evaluateFormula(formula,params) == 1) return false;
     }
     return true;
+}
+
+/**
+ * @param {string} formula 
+ * @returns {string}
+ */
+function toPostFix(formula){
+    /** @type {VyrologicProcessCallbacks<string>} */
+    const callbacks = {
+        onCompound: (f,splitIndex) => `${
+                processFormula(f.substring(0,splitIndex),callbacks)
+            }${
+                processFormula(f.substring(splitIndex+1),callbacks)
+            }${f[splitIndex]}`
+        ,
+        onNegation: (f) => processFormula(f.substring(1),callbacks)+"!"
+        ,
+        onElemental: (f) => f
+    }
+    return processFormula(formula, callbacks)
+}
+
+/**
+ * 
+ * @param {string} formula 
+ * @returns {string}
+ */
+function toPreFix(formula){
+    /** @type {VyrologicProcessCallbacks<string>} */
+    const callbacks = {
+        onCompound: (f,splitIndex) => `${f[splitIndex]}${
+                processFormula(f.substring(0,splitIndex),callbacks)
+            }${
+                processFormula(f.substring(splitIndex+1),callbacks)
+            }`
+        ,
+        onNegation: (f) => "!"+processFormula(f.substring(1),callbacks)
+        ,
+        onElemental: (f) => f
+    }
+    return processFormula(formula, callbacks)
 }
