@@ -227,10 +227,8 @@ function toPostFix(formula){
                 processFormula(f.substring(0,splitIndex),callbacks)
             }${
                 processFormula(f.substring(splitIndex+1),callbacks)
-            }${f[splitIndex]}`
-        ,
-        onNegation: (f) => processFormula(f.substring(1),callbacks)+"!"
-        ,
+            }${f[splitIndex]}`,
+        onNegation: (f) => processFormula(f.substring(1),callbacks)+"!",
         onElemental: (f) => f
     }
     return processFormula(formula, callbacks)
@@ -248,11 +246,49 @@ function toPreFix(formula){
                 processFormula(f.substring(0,splitIndex),callbacks)
             }${
                 processFormula(f.substring(splitIndex+1),callbacks)
-            }`
-        ,
-        onNegation: (f) => "!"+processFormula(f.substring(1),callbacks)
-        ,
+            }`,
+        onNegation: (f) => "!"+processFormula(f.substring(1),callbacks),
         onElemental: (f) => f
     }
     return processFormula(formula, callbacks)
+}
+
+/**
+ * @param {string} formula 
+ */
+function fromPostFixToInFix(formula){
+    let buffer = [];
+    Array.of(...formula).forEach(c => {
+        if (c.match(/^[a-z]$/i)) buffer.push(c);
+        else if (c === "!") buffer.push(c+buffer.pop())
+        else if (Object.keys(SYMBOL_MAP).includes(c)) {
+            const [sec,fir] = [buffer.pop(), buffer.pop()];
+            buffer.push("("+fir+c+sec+")")
+        }
+        else {
+            throw Error("Invalid postfix formula!")
+        }
+    })
+    if (buffer.length>1) throw Error("Invalid prefix formula")
+    return removeSurrFormBrackets(buffer[0]);
+}
+
+/**
+ * @param {string} formula 
+ */
+function fromPreFixToInFix(formula){
+    let buffer = [];
+    Array.of(...formula).reverse().forEach(c => {
+        if (c.match(/^[a-z]$/i)) buffer.push(c);
+        else if (c === "!") buffer.push(c+buffer.pop())
+        else if (Object.keys(SYMBOL_MAP).includes(c)) {
+            const [sec,fir] = [buffer.pop(), buffer.pop()];
+            buffer.push("("+sec+c+fir+")")
+        }
+        else {
+            throw Error("Invalid prefix formula!")
+        }
+    })
+    if (buffer.length>1) throw Error("Invalid prefix formula")
+    return removeSurrFormBrackets(buffer[0]);
 }

@@ -17,6 +17,23 @@ reverseEl.oninput = () => {
 function calc(){
     let table = "<table><tr>"
     const formula = inputEl.value;
+
+    const NOTATIONS = {
+        "INFIX":translateFormula,
+        "POSTFIX":fromPostFixToInFix,
+        "PREFIX":fromPreFixToInFix
+    }
+
+    Object.entries(NOTATIONS).forEach(([type,fct]) => {
+        try {
+            fct(formula);
+            console.log(formula,type)
+        }
+        catch(e){
+            console.warn(`IT IS NOT ${type}`);
+        }
+    
+    })
     const compounds = getCompounds(formula);
     const variables = getLogicFormulaVariables(formula)
     variables.forEach(c => table += `<th>$${c}$</th>`);
@@ -39,8 +56,13 @@ function calc(){
     outputEl.innerHTML = table+"</table>"
     dnfEl.innerHTML = `$${logicToMathJax(makeDNF(formula))}$`
     knfEl.innerHTML = `$${logicToMathJax(makeKNF(formula))}$`
-    console.log("post",toPostFix(formula))
-    console.log("pre",toPreFix(formula))
-    console.log(translateFormula(formula))
+    // console.log("pos",toPostFix(formula))
+    // console.log("pre",toPreFix(formula))
+    // console.log(translateFormula(formula))
+    // console.log("pos to inf",fromPostFixToInFix(toPostFix(formula)))
+    // console.log("pre to inf",fromPreFixToInFix(toPreFix(formula)))
+
+
+
 }
 calc()
