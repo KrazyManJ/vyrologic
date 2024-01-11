@@ -104,21 +104,24 @@ export function translateFormula(formula:string) {
 
 
 export function getCompounds(formula: string): string[] {
-    // TODO: Needs Re-implementation of recursing tree to get compounds in correct order
-    const callbacks: VyrologicProcessCallbacks<string[]> = {
-        onElemental: () => [],
-        onNegation: (f) => [f,...processFormula(f.substring(1),callbacks) ?? []],
-        onCompound: (f,splitIndex) => [
-            ...processFormula(f.substring(0,splitIndex),callbacks) ?? [],
-            f,
-            ...processFormula(f.substring(splitIndex+1),callbacks) ?? []
-        ]
+    const result: string[] = [];
+    const callbacks: VyrologicProcessCallbacks<void> = {
+        onNegation: (f) => {
+            processFormula(f.substring(1), callbacks);
+            result.push(f);
+        },
+        onCompound: (f, splitIndex) => {
+            processFormula(f.substring(0,splitIndex), callbacks);
+            processFormula(f.substring(splitIndex+1), callbacks);
+            if (f !== formula) result.push(f);
+        }
     }
-    return uniqueArray((processFormula(formula,callbacks) ?? []).filter(f => f !== removeSurrFormBrackets(formula)))
+    processFormula(formula, callbacks);
+    return uniqueArray(result);
 }
 
 export function getLogicFormulaVariables(formula: string): string[] {
-    return uniqueArray(formula.replace(/[^a-z]/gi,"").split(""))
+    return uniqueArray(formula.replace(/[^a-z]/gi,"").split(""));
 }
 
 export function evaluateFormula(formula:string,params: Record<string,number>){
